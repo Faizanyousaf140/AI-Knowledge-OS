@@ -22,7 +22,10 @@ export default function Header() {
 
   const handleLogout = async () => {
     try {
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+      const API_BASE =
+        process.env.NEXT_PUBLIC_API_BASE_URL ||
+        process.env.NEXT_PUBLIC_API_URL ||
+        "http://localhost:5000";
       const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken) {
         await fetch(`${API_BASE}/api/auth/logout`, {

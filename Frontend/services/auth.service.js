@@ -1,6 +1,9 @@
 import * as api from '../lib/api';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
 
 export async function loginUser(email, password) {
   const res = await api.login(email, password);
@@ -49,6 +52,7 @@ export async function startOAuth(provider, { link = false } = {}) {
   const query = link ? '?link=true' : '';
   const res = await fetch(`${API_BASE}/api/auth/oauth/${provider}${query}`, {
     method: 'GET',
+    credentials: 'include',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   const data = await res.json().catch(() => ({}));

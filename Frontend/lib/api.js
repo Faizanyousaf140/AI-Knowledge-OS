@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:5000";
 let refreshPromise = null;
 
 async function refreshAccessToken() {
@@ -7,6 +10,7 @@ async function refreshAccessToken() {
 
   const refreshRes = await fetch(`${API_BASE}/api/auth/refresh`, {
     method: "POST",
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken }),
   });
@@ -45,6 +49,7 @@ export async function apiRequest(path, options = {}) {
   try {
     response = await fetch(`${API_BASE}${path}`, {
       ...options,
+      credentials: "include",
       headers,
     });
   } catch (err) {
@@ -68,7 +73,11 @@ export async function apiRequest(path, options = {}) {
         if (newAccessToken) {
           // retry original request once with new token
           const retryHeaders = { ...headers, Authorization: `Bearer ${newAccessToken}` };
-          const retryResp = await fetch(`${API_BASE}${path}`, { ...options, headers: retryHeaders });
+          const retryResp = await fetch(`${API_BASE}${path}`, {
+            ...options,
+            credentials: "include",
+            headers: retryHeaders,
+          });
           let retryData = {};
           try { retryData = await retryResp.json(); } catch (e) { retryData = {}; }
           if (!retryResp.ok) throw new Error((retryData && retryData.message) || `Request failed with ${retryResp.status}`);
@@ -207,6 +216,7 @@ export async function streamAI(projectId, question, onToken, onDone, onError) {
   try {
     const res = await fetch(`${API_BASE}/api/ai/chat/stream`, {
       method: 'POST',
+      credentials: 'include',
       headers: { 'Content-Type': 'application/json', ...(localStorage.getItem('accessToken') ? { Authorization: `Bearer ${localStorage.getItem('accessToken')}` } : {}) },
       body: JSON.stringify({ projectId, question }),
     });

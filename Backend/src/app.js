@@ -12,9 +12,33 @@ const { apiLimiter } = require("./middlewares/rateLimit.middleware");
 const sanitize = require("./middlewares/sanitize.middleware");
 const logger = require("./utils/logger");
 const swaggerDocument = require("./config/swagger");
+
+const corsOrigins = String(process.env.CORS_ORIGIN || process.env.FRONTEND_URL || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions = {
+  credentials: true,
+  origin(origin, callback) {
+    // Allow server-to-server and local tools with no Origin header
+    if (!origin) return callback(null, true);
+
+    if (corsOrigins.length === 0) {
+      return callback(null, true);
+    }
+
+    if (corsOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS origin not allowed"));
+  },
+};
+
 // Middlewares
 app.use(helmet());
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(sanitize);
 app.use("/api", apiLimiter);
